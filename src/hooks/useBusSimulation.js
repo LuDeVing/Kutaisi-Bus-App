@@ -8,11 +8,12 @@ function lerp(a, b, t) {
 
 export function useBusSimulation(initialBuses) {
   const [buses, setBuses] = useState(() =>
-    initialBuses.map((bus, i) => ({
+    initialBuses.map(bus => ({
       ...bus,
-      pathIndex: 0,
-      // Stagger starting progress so buses don't all move in sync
-      progress: (i * 0.33) % 1,
+      pathIndex: bus.pathIndex || 0,
+      progress: bus.progress || 0,
+      isActive: bus.isActive !== undefined ? bus.isActive : true,
+      direction: 1, // 1 = forward, -1 = backward (for looping)
     }))
   );
 
@@ -20,33 +21,66 @@ export function useBusSimulation(initialBuses) {
     const interval = setInterval(() => {
       setBuses(prev =>
         prev.map(bus => {
+          // Inactive buses don't move
+          if (!bus.isActive) return bus;
+
           const route = routesMap[bus.route_id];
           if (!route) return bus;
 
           const path = route.path;
           const stopIds = route.stops;
-          // Number of valid segments: path[0]→path[1], ..., path[n-2]→path[n-1]
           const maxSegmentIndex = path.length - 2;
 
           let newPathIndex = bus.pathIndex;
-          let newProgress = bus.progress + 0.12; // each OSRM segment is ~5-15m; 0.12 ≈ realistic bus speed
+          let newProgress = bus.progress + 0.12 * bus.direction;
+          let newDirection = bus.direction;
 
-          if (newProgress >= 1) {
-            newProgress = 0;
-            newPathIndex = newPathIndex >= maxSegmentIndex ? 0 : newPathIndex + 1;
+          if (newDirection === 1) {
+            // Moving forward
+            if (newProgress >= 1) {
+              newProgress = 0;
+              newPathIndex += 1;
+              if (newPathIndex > maxSegmentIndex) {
+                // Reached end — reverse direction for loop
+                newDirection = -1;
+                newPathIndex = maxSegmentIndex;
+                newProgress = 1;
+              }
+            }
+          } else {
+            // Moving backward
+            if (newProgress <= 0) {
+              newProgress = 1;
+              newPathIndex -= 1;
+              if (newPathIndex < 0) {
+                // Reached start — reverse direction for loop
+                newDirection = 1;
+                newPathIndex = 0;
+                newProgress = 0;
+              }
+            }
           }
 
+          // Ensure indices stay in bounds
+          newPathIndex = Math.max(0, Math.min(newPathIndex, maxSegmentIndex));
+
           const fromPt = path[newPathIndex];
-          const toPt = path[newPathIndex + 1]; // safe: never wraps past end
+          const toPt = path[newPathIndex + 1];
+
+          if (!fromPt || !toPt) return bus;
 
           const lat = lerp(fromPt[0], toPt[0], newProgress);
           const lng = lerp(fromPt[1], toPt[1], newProgress);
 
-          const stopIndex = Math.min(newPathIndex, stopIds.length - 1);
-          const nextStopIndex = Math.min(newPathIndex + 1, stopIds.length - 1);
+          // Map path position to stop index
+          const routeProgress = (newPathIndex + newProgress) / path.length;
+          const stopIndex = Math.min(
+            Math.floor(routeProgress * stopIds.length),
+            stopIds.length - 1
+          );
+          const nextStopIndex = Math.min(stopIndex + 1, stopIds.length - 1);
           const currentStopObj = stopsMap[stopIds[stopIndex]];
           const nextStopObj = stopsMap[stopIds[nextStopIndex]];
-          const stopsRemaining = stopIds.length - stopIndex - 1;
 
           return {
             ...bus,
@@ -54,14 +88,15 @@ export function useBusSimulation(initialBuses) {
             lng,
             pathIndex: newPathIndex,
             progress: newProgress,
+            direction: newDirection,
             stopIndex,
             current_stop: currentStopObj ? currentStopObj.name : bus.current_stop,
             next_stop: nextStopObj ? nextStopObj.name : bus.next_stop,
-            stops_remaining: stopsRemaining,
+            stops_remaining: stopIds.length - stopIndex - 1,
           };
         })
       );
-    }, 100); // 100ms ticks for smooth movement
+    }, 100);
 
     return () => clearInterval(interval);
   }, []);

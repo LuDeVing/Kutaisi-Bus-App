@@ -1,14 +1,12 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import StopMarker from './StopMarker';
 import BusMarker from './BusMarker';
 import RoutePolyline from './RoutePolyline';
-import { stops } from '../data/stops';
 import { routesMap } from '../data/routes';
 
 const KUTAISI_CENTER = [42.2662, 42.7180];
 
-// Inner component to expose map instance
 function MapController({ flyTo, onMapReady }) {
   const map = useMap();
 
@@ -27,14 +25,31 @@ function MapController({ flyTo, onMapReady }) {
 
 export default function MapView({
   buses,
+  visibleBuses,
+  visibleStops,
   selectedBus,
   selectedStop,
   onSelectBus,
   onSelectStop,
   flyTo,
   onMapReady,
+  filterMode,
 }) {
-  const selectedRoute = selectedBus ? routesMap[selectedBus.route_id] : null;
+  // Determine which route polylines to show
+  const routesToShow = [];
+  if (filterMode) {
+    const seenRoutes = new Set();
+    for (const bus of visibleBuses) {
+      if (!seenRoutes.has(bus.route_id)) {
+        seenRoutes.add(bus.route_id);
+        const route = routesMap[bus.route_id];
+        if (route) routesToShow.push(route);
+      }
+    }
+  } else if (selectedBus) {
+    const route = routesMap[selectedBus.route_id];
+    if (route) routesToShow.push(route);
+  }
 
   return (
     <MapContainer
@@ -50,11 +65,13 @@ export default function MapView({
 
       <MapController flyTo={flyTo} onMapReady={onMapReady} />
 
-      {/* Route highlight when bus selected */}
-      {selectedRoute && <RoutePolyline route={selectedRoute} />}
+      {/* Route polylines */}
+      {routesToShow.map(route => (
+        <RoutePolyline key={route.id} route={route} />
+      ))}
 
-      {/* All bus stops */}
-      {stops.map(stop => (
+      {/* Bus stops */}
+      {visibleStops.map(stop => (
         <StopMarker
           key={stop.id}
           stop={stop}
@@ -64,7 +81,7 @@ export default function MapView({
       ))}
 
       {/* Live buses */}
-      {buses.map(bus => (
+      {visibleBuses.map(bus => (
         <BusMarker
           key={bus.id}
           bus={bus}
