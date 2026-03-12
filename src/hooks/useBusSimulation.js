@@ -29,7 +29,7 @@ export function useBusSimulation(initialBuses) {
           const maxSegmentIndex = path.length - 2;
 
           let newPathIndex = bus.pathIndex;
-          let newProgress = bus.progress + 0.008; // ~125 ticks per segment = ~12.5s per stop
+          let newProgress = bus.progress + 0.12; // each OSRM segment is ~5-15m; 0.12 ≈ realistic bus speed
 
           if (newProgress >= 1) {
             newProgress = 0;
