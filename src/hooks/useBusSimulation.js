@@ -90,6 +90,9 @@ export function useBusSimulation(initialBuses) {
     const interval = setInterval(() => {
       setBuses(prev =>
         prev.map(bus => {
+          // Inactive buses don't move
+          if (!bus.isActive) return bus;
+
           const route = routesMap[bus.route_id];
           if (!route) return bus;
 

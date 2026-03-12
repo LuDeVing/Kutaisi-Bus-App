@@ -144,6 +144,8 @@ function makePinIcon(color) {
 
 export default function MapView({
   buses,
+  visibleBuses,
+  visibleStops,
   selectedBus,
   selectedStop,
   onSelectBus,
@@ -155,8 +157,23 @@ export default function MapView({
   onMapClick,
   tripFrom,
   tripTo,
+  filterMode,
 }) {
-  const selectedRoute = selectedBus ? routesMap[selectedBus.route_id] : null;
+  // Determine which route polylines to show
+  const routesToShow = [];
+  if (filterMode) {
+    const seenRoutes = new Set();
+    for (const bus of visibleBuses) {
+      if (!seenRoutes.has(bus.route_id)) {
+        seenRoutes.add(bus.route_id);
+        const route = routesMap[bus.route_id];
+        if (route) routesToShow.push(route);
+      }
+    }
+  } else if (selectedBus) {
+    const route = routesMap[selectedBus.route_id];
+    if (route) routesToShow.push(route);
+  }
 
   return (
     <div style={{ width: '100%', height: '100%', cursor: pickMode ? 'crosshair' : undefined }}>
@@ -195,11 +212,13 @@ export default function MapView({
       {/* Active trip plan overlay */}
       {tripPlan && <TripPlanOverlay tripPlan={tripPlan} />}
 
-      {/* Route highlight when a bus is selected (only if no trip plan active) */}
-      {!tripPlan && selectedRoute && <RoutePolyline route={selectedRoute} />}
+      {/* Route polylines */}
+      {routesToShow.map(route => (
+        <RoutePolyline key={route.id} route={route} />
+      ))}
 
-      {/* All bus stops */}
-      {stops.map(stop => (
+      {/* Bus stops */}
+      {visibleStops.map(stop => (
         <StopMarker
           key={stop.id}
           stop={stop}
@@ -209,7 +228,7 @@ export default function MapView({
       ))}
 
       {/* Live buses */}
-      {buses.map(bus => (
+      {visibleBuses.map(bus => (
         <BusMarker
           key={bus.id}
           bus={bus}

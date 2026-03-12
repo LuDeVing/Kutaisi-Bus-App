@@ -2,7 +2,7 @@ import { Marker, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import { routesMap } from '../data/routes';
 
-function createBusIcon(busNumber, color, isSelected, isDwelling, destination) {
+function createBusIcon(busNumber, color, isSelected, isDwelling, destination, isActive) {
   const size = isSelected ? 52 : 44;
   const destLabel = destination ? `→ ${destination.slice(0, 9)}` : '';
   const borderColor = isDwelling ? '#4ade80' : 'white';
@@ -12,6 +12,9 @@ function createBusIcon(busNumber, color, isSelected, isDwelling, destination) {
     : isSelected
     ? `box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 0 0 3px ${color}66;`
     : `box-shadow: 0 4px 12px rgba(0,0,0,0.4);`;
+
+  const opacity = isActive ? 1 : 0.45;
+  const grayscale = isActive ? 'none' : 'grayscale(80%)';
 
   return L.divIcon({
     className: '',
@@ -31,6 +34,8 @@ function createBusIcon(busNumber, color, isSelected, isDwelling, destination) {
           cursor: pointer;
           transition: border-color 0.3s ease, box-shadow 0.3s ease;
           padding: 2px;
+          opacity: ${opacity};
+          filter: ${grayscale};
         ">
           <span style="font-size:${isSelected ? '16px' : '14px'}; line-height:1;">🚌</span>
           <span style="color:white;font-size:9px;font-weight:800;font-family:system-ui;line-height:1;text-shadow:0 1px 2px rgba(0,0,0,0.5);">
@@ -51,11 +56,12 @@ export default function BusMarker({ bus, isSelected, onSelect }) {
   const color = route ? route.color : '#f59e0b';
   const busNumber = route ? route.bus_number : '?';
   const isDwelling = bus.status === 'dwelling';
+  const isActive = bus.isActive !== false;
 
   return (
     <Marker
       position={[bus.lat, bus.lng]}
-      icon={createBusIcon(busNumber, color, isSelected, isDwelling, bus.destination)}
+      icon={createBusIcon(busNumber, color, isSelected, isDwelling, bus.destination, isActive)}
       eventHandlers={{ click: () => onSelect(bus) }}
       zIndexOffset={isDwelling ? 900 : isSelected ? 1000 : 500}
     >
@@ -64,6 +70,9 @@ export default function BusMarker({ bus, isSelected, onSelect }) {
           <span style={{ fontWeight: 700 }}>Bus {busNumber}</span>
           {isDwelling && (
             <span style={{ marginLeft: 6, fontSize: 10, color: '#22c55e', fontWeight: 600 }}>● AT STOP</span>
+          )}
+          {!isActive && (
+            <span style={{ marginLeft: 6, fontSize: 10, color: '#ef4444', fontWeight: 600 }}>● INACTIVE</span>
           )}
           <br />
           <span style={{ color: '#64748b', fontSize: 11 }}>
@@ -80,3 +89,4 @@ export default function BusMarker({ bus, isSelected, onSelect }) {
     </Marker>
   );
 }
+
