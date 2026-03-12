@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import { Marker, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import { routesMap } from '../data/routes';
@@ -20,7 +21,7 @@ function createBusIcon(busNumber, color, isSelected, isDwelling, destination, is
     className: '',
     html: `
       <div style="position:relative; display:inline-block;">
-        <div class="bus-marker-icon" style="
+        <div style="
           width: ${size}px;
           height: ${size}px;
           background: ${color};
@@ -32,8 +33,6 @@ function createBusIcon(busNumber, color, isSelected, isDwelling, destination, is
           justify-content: center;
           flex-direction: column;
           cursor: pointer;
-          transition: border-color 0.3s ease, box-shadow 0.3s ease;
-          padding: 2px;
           opacity: ${opacity};
           filter: ${grayscale};
         ">
@@ -52,40 +51,43 @@ function createBusIcon(busNumber, color, isSelected, isDwelling, destination, is
 }
 
 export default function BusMarker({ bus, isSelected, onSelect }) {
+  const [isHovered, setIsHovered] = useState(false);
   const route = routesMap[bus.route_id];
   const color = route ? route.color : '#f59e0b';
   const busNumber = route ? route.bus_number : '?';
   const isDwelling = bus.status === 'dwelling';
   const isActive = bus.isActive !== false;
 
+  // Memoize icon to prevent flicker on coordinate updates
+  const icon = useMemo(() => 
+    createBusIcon(busNumber, color, isSelected, isDwelling, bus.destination, isActive),
+    [busNumber, color, isSelected, isDwelling, bus.destination, isActive]
+  );
+
   return (
     <Marker
       position={[bus.lat, bus.lng]}
-      icon={createBusIcon(busNumber, color, isSelected, isDwelling, bus.destination, isActive)}
-      eventHandlers={{ click: () => onSelect(bus) }}
+      icon={icon}
+      eventHandlers={{ 
+        click: () => onSelect(bus),
+        mouseover: () => setIsHovered(true),
+        mouseout: () => setIsHovered(false)
+      }}
       zIndexOffset={isDwelling ? 900 : isSelected ? 1000 : 500}
     >
-      <Tooltip direction="top" offset={[0, -12]} opacity={0.97}>
-        <div style={{ fontSize: '12px' }}>
-          <span style={{ fontWeight: 700 }}>Bus {busNumber}</span>
-          {isDwelling && (
-            <span style={{ marginLeft: 6, fontSize: 10, color: '#22c55e', fontWeight: 600 }}>● AT STOP</span>
-          )}
-          {!isActive && (
-            <span style={{ marginLeft: 6, fontSize: 10, color: '#ef4444', fontWeight: 600 }}>● INACTIVE</span>
-          )}
-          <br />
-          <span style={{ color: '#64748b', fontSize: 11 }}>
-            {isDwelling ? `Stopped: ${bus.current_stop}` : `En route to ${bus.next_stop}`}
-          </span>
-          {bus.destination && (
-            <>
-              <br />
-              <span style={{ color: '#94a3b8', fontSize: 10 }}>→ {bus.destination}</span>
-            </>
-          )}
-        </div>
-      </Tooltip>
+      {isHovered && (
+        <Tooltip direction="top" offset={[0, -12]} opacity={0.97} permanent>
+          <div style={{ fontSize: '11px' }}>
+            <div style={{ fontWeight: 800, marginBottom: '2px' }}>
+              Bus {busNumber} 
+              {isDwelling && <span style={{ color: '#4ade80', marginLeft: '6px' }}>● AT STOP</span>}
+            </div>
+            <div style={{ color: '#94a3b8' }}>
+              {isDwelling ? `Stopped: ${bus.current_stop || '...'}` : `Next: ${bus.next_stop || '...'}`}
+            </div>
+          </div>
+        </Tooltip>
+      )}
     </Marker>
   );
 }

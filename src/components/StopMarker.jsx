@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import { Marker, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 
@@ -23,17 +24,26 @@ function createStopIcon(isSelected) {
 }
 
 export default function StopMarker({ stop, isSelected, onSelect }) {
+  const [isHovered, setIsHovered] = useState(false);
+  
+  // Memoize icon
+  const icon = useMemo(() => createStopIcon(isSelected), [isSelected]);
+
   return (
     <Marker
       position={[stop.lat, stop.lng]}
-      icon={createStopIcon(isSelected)}
+      icon={icon}
       eventHandlers={{
         click: () => onSelect(stop),
+        mouseover: () => setIsHovered(true),
+        mouseout: () => setIsHovered(false)
       }}
     >
-      <Tooltip direction="top" offset={[0, -12]} opacity={0.95}>
-        <span style={{ fontSize: '12px', fontWeight: 600 }}>{stop.name}</span>
-      </Tooltip>
+      {isHovered && (
+        <Tooltip direction="top" offset={[0, -12]} opacity={0.95} permanent>
+          <span style={{ fontSize: '12px', fontWeight: 600 }}>{stop.name}</span>
+        </Tooltip>
+      )}
     </Marker>
   );
 }

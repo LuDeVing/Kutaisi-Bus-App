@@ -91,7 +91,7 @@ export function useBusSimulation(initialBuses) {
       setBuses(prev =>
         prev.map(bus => {
           // Inactive buses don't move
-          if (!bus.isActive) return bus;
+          if (bus.isActive === false) return bus;
 
           const route = routesMap[bus.route_id];
           if (!route) return bus;
@@ -141,7 +141,7 @@ export function useBusSimulation(initialBuses) {
 
           // Interpolate position — swap from/to when going in reverse
           const fromPt = newDirection === 1 ? path[newPathIndex] : path[newPathIndex + 1] ?? path[newPathIndex];
-          const toPt   = newDirection === 1 ? path[Math.min(newPathIndex + 1, path.length - 1)] : path[newPathIndex];
+          const toPt = newDirection === 1 ? path[Math.min(newPathIndex + 1, path.length - 1)] : path[newPathIndex];
           const lat = lerp(fromPt[0], toPt[0], newProgress);
           const lng = lerp(fromPt[1], toPt[1], newProgress);
 

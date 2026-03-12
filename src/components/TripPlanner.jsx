@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { stops } from '../data/stops';
 import { planTrip, planTripFromCoords } from '../utils/tripPlanner';
 import { routesMap } from '../data/routes';
@@ -6,8 +6,99 @@ import { stopsMap } from '../data/stops';
 
 const sortedStops = [...stops].sort((a, b) => a.name.localeCompare(b.name));
 
+function SearchableStopSelector({ label, value, onChange, placeholder, colorClass, search, onSearchChange, pickMode, onPickMode, activePickMode }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredStops = useMemo(() => 
+    sortedStops.filter(s => s.name.toLowerCase().includes(search.toLowerCase())),
+    [search]
+  );
+
+  return (
+    <div className="space-y-1.5" ref={containerRef}>
+      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">{label}</label>
+      <div className="flex gap-2">
+        <div className="relative flex-1 group">
+          <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all duration-200 ${value ? 'bg-slate-800 border-slate-700 shadow-inner' : 'bg-slate-800/40 border-slate-800 text-slate-500 hover:border-slate-700'}`}>
+            <div className={`w-2.5 h-2.5 rounded-full border-2 flex-shrink-0 ${colorClass}`}></div>
+            <input
+              type="text"
+              className="bg-transparent border-none outline-none text-xs text-white w-full placeholder:text-slate-600"
+              placeholder={placeholder}
+              value={isOpen ? search : (value ? (value.type === 'stop' ? value.name : `📍 ${value.lat.toFixed(4)}, ${value.lng.toFixed(4)}`) : '')}
+              onFocus={() => setIsOpen(true)}
+              onChange={(e) => {
+                onSearchChange(e.target.value);
+                setIsOpen(true);
+              }}
+            />
+            {value && (
+              <button 
+                onClick={(e) => { e.stopPropagation(); onChange(null); }} 
+                className="text-slate-500 hover:text-white transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+
+          {/* Dropdown Result List */}
+          {isOpen && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900 border border-slate-700/60 rounded-2xl shadow-2xl overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700">
+                {filteredStops.length > 0 ? (
+                  filteredStops.map(s => (
+                    <button
+                      key={s.id}
+                      onClick={() => {
+                        onChange({ type: 'stop', id: s.id, name: s.name });
+                        onSearchChange('');
+                        setIsOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-800 transition-colors text-left group"
+                    >
+                      <div className="w-2 h-2 rounded-full border border-slate-600 group-hover:border-blue-400"></div>
+                      <span className="text-xs text-slate-300 group-hover:text-white">{s.name}</span>
+                    </button>
+                  ))
+                ) : (
+                  <div className="px-4 py-3 text-xs text-slate-500 italic">No stops found</div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <button
+          onClick={() => onPickMode(activePickMode === pickMode ? null : pickMode)}
+          className={`w-11 h-11 rounded-2xl border transition-all duration-200 flex items-center justify-center text-lg shadow-lg ${activePickMode === pickMode 
+            ? 'bg-blue-600 border-blue-500 text-white shadow-blue-600/30' 
+            : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-white hover:border-slate-600'}`}
+          title="Pick on map"
+        >
+          📍
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // Convert segments into a flat list of human-readable steps
 function buildSteps(result) {
+// ... existing buildSteps
   const steps = [];
   const segs = result.segments;
 
@@ -69,9 +160,22 @@ function buildSteps(result) {
   return steps;
 }
 
-export default function TripPlanner({ onSelectStop, onTripFound, tripFrom, tripTo, onTripFromChange, onTripToChange, pickMode, onPickMode }) {
+export default function TripPlanner({ onSelectStop, onTripFound, tripFrom, tripTo, onTripFromChange, onTripToChange, pickMode, onPickMode, onOpenFeedback }) {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [fromSearch, setFromSearch] = useState('');
+  const [toSearch, setToSearch] = useState('');
+
+  const filteredFromStops = useMemo(() => 
+    sortedStops.filter(s => s.name.toLowerCase().includes(fromSearch.toLowerCase())),
+    [fromSearch]
+  );
+
+  const filteredToStops = useMemo(() => 
+    sortedStops.filter(s => s.name.toLowerCase().includes(toSearch.toLowerCase())),
+    [toSearch]
+  );
+// ... existing functions handleFind, handleStopClick
 
   async function handleFind() {
     if (!tripFrom || !tripTo) return;
@@ -114,42 +218,25 @@ export default function TripPlanner({ onSelectStop, onTripFound, tripFrom, tripT
 
       <div className="flex-1 overflow-y-auto">
         {/* Form */}
-        <div className="p-4 space-y-3">
-          {/* From field */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">From</label>
-            <div className="flex gap-1.5">
-              <div className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-xl border text-sm ${tripFrom ? 'bg-slate-700 border-blue-500/50 text-white' : 'bg-slate-800 border-slate-600 text-slate-400'}`}>
-                <div className="w-2.5 h-2.5 rounded-full border-2 border-blue-400 flex-shrink-0"></div>
-                <span className="truncate text-xs">
-                  {tripFrom ? (tripFrom.type === 'stop' ? tripFrom.name : `📍 ${tripFrom.lat.toFixed(4)}, ${tripFrom.lng.toFixed(4)}`) : 'Not set'}
-                </span>
-                {tripFrom && (
-                  <button onClick={() => { onTripFromChange(null); setResult(null); }} className="ml-auto text-slate-400 hover:text-white flex-shrink-0">×</button>
-                )}
-              </div>
-              <button
-                onClick={() => onPickMode(pickMode === 'from' ? null : 'from')}
-                className={`px-2.5 rounded-xl border text-xs font-semibold transition-colors flex-shrink-0 ${pickMode === 'from' ? 'bg-blue-500 border-blue-400 text-white' : 'bg-slate-700 border-slate-600 text-slate-300 hover:bg-slate-600'}`}
-                title="Pick on map"
-              >📍</button>
-            </div>
-            {/* Also allow dropdown selection */}
-            <select
-              value={tripFrom?.type === 'stop' ? tripFrom.id : ''}
-              onChange={e => { if (e.target.value) { const s = stopsMap[e.target.value]; onTripFromChange({ type: 'stop', id: e.target.value, name: s?.name ?? '' }); setResult(null); } }}
-              className="w-full mt-1 px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-slate-400 text-xs appearance-none focus:outline-none cursor-pointer"
-            >
-              <option value="">Or select stop from list...</option>
-              {sortedStops.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-          </div>
+        <div className="p-4 space-y-4">
+          <SearchableStopSelector 
+            label="From"
+            placeholder="Search starting stop..."
+            value={tripFrom}
+            onChange={(val) => { onTripFromChange(val); setResult(null); }}
+            colorClass="border-blue-400"
+            search={fromSearch}
+            onSearchChange={setFromSearch}
+            pickMode="from"
+            activePickMode={pickMode}
+            onPickMode={onPickMode}
+          />
 
           {/* Swap button */}
-          <div className="flex justify-center">
+          <div className="flex justify-center -my-2 relative z-10">
             <button
               onClick={() => { onTripFromChange(tripTo); onTripToChange(tripFrom); setResult(null); }}
-              className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-400 hover:text-white transition-colors"
+              className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-400 hover:text-white transition-all shadow-md flex items-center justify-center active:scale-95"
               title="Swap"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -158,35 +245,18 @@ export default function TripPlanner({ onSelectStop, onTripFound, tripFrom, tripT
             </button>
           </div>
 
-          {/* To field */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">To</label>
-            <div className="flex gap-1.5">
-              <div className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-xl border text-sm ${tripTo ? 'bg-slate-700 border-green-500/50 text-white' : 'bg-slate-800 border-slate-600 text-slate-400'}`}>
-                <div className="w-2.5 h-2.5 rounded-full bg-green-400 flex-shrink-0"></div>
-                <span className="truncate text-xs">
-                  {tripTo ? (tripTo.type === 'stop' ? tripTo.name : `📍 ${tripTo.lat.toFixed(4)}, ${tripTo.lng.toFixed(4)}`) : 'Not set'}
-                </span>
-                {tripTo && (
-                  <button onClick={() => { onTripToChange(null); setResult(null); }} className="ml-auto text-slate-400 hover:text-white flex-shrink-0">×</button>
-                )}
-              </div>
-              <button
-                onClick={() => onPickMode(pickMode === 'to' ? null : 'to')}
-                className={`px-2.5 rounded-xl border text-xs font-semibold transition-colors flex-shrink-0 ${pickMode === 'to' ? 'bg-green-500 border-green-400 text-white' : 'bg-slate-700 border-slate-600 text-slate-300 hover:bg-slate-600'}`}
-                title="Pick on map"
-              >📍</button>
-            </div>
-            {/* Also allow dropdown selection */}
-            <select
-              value={tripTo?.type === 'stop' ? tripTo.id : ''}
-              onChange={e => { if (e.target.value) { const s = stopsMap[e.target.value]; onTripToChange({ type: 'stop', id: e.target.value, name: s?.name ?? '' }); setResult(null); } }}
-              className="w-full mt-1 px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-slate-400 text-xs appearance-none focus:outline-none cursor-pointer"
-            >
-              <option value="">Or select stop from list...</option>
-              {sortedStops.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-          </div>
+          <SearchableStopSelector 
+            label="To"
+            placeholder="Search destination stop..."
+            value={tripTo}
+            onChange={(val) => { onTripToChange(val); setResult(null); }}
+            colorClass="bg-green-400 border-green-500/40"
+            search={toSearch}
+            onSearchChange={setToSearch}
+            pickMode="to"
+            activePickMode={pickMode}
+            onPickMode={onPickMode}
+          />
 
           {/* Find button */}
           <button
@@ -305,17 +375,27 @@ export default function TripPlanner({ onSelectStop, onTripFound, tripFrom, tripT
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t border-slate-700/60">
-        <div className="grid grid-cols-2 gap-2 text-center">
-          <div>
-            <p className="text-lg font-bold text-white">54</p>
-            <p className="text-xs text-slate-500">Bus Stops</p>
+      <div className="p-4 border-t border-slate-800 bg-slate-900/50 flex flex-col gap-3">
+        <button 
+          onClick={onOpenFeedback}
+          className="w-full py-3 px-4 bg-slate-800 border border-slate-700 rounded-2xl flex items-center justify-between group hover:bg-slate-700/50 transition-all active:scale-[0.98]"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-400 border border-orange-500/20 group-hover:scale-110 transition-transform">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div className="text-left">
+              <p className="text-white text-xs font-bold leading-none">Report Issue</p>
+              <p className="text-slate-500 text-[10px]">Tell us about a problem</p>
+            </div>
           </div>
-          <div>
-            <p className="text-lg font-bold text-white">15</p>
-            <p className="text-xs text-slate-500">Active Routes</p>
-          </div>
-        </div>
+          <svg className="w-4 h-4 text-slate-600 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+        <p className="text-[10px] text-slate-600 text-center font-medium">Kutaisi Smart Bus · v2.4.0</p>
       </div>
     </aside>
   );

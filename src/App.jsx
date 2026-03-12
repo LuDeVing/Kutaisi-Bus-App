@@ -3,9 +3,10 @@ import Navbar from './components/Navbar';
 import TripPlanner from './components/TripPlanner';
 import MapView from './components/MapView';
 import PopupModal from './components/PopupModal';
+import FeedbackModal from './components/FeedbackModal';
 import { useBusSimulation } from './hooks/useBusSimulation';
 import { initialBuses } from './data/buses';
-import { stops } from './data/stops';
+import { stops, stopsMap } from './data/stops';
 import { routes, routesMap } from './data/routes';
 
 export default function App() {
@@ -13,6 +14,7 @@ export default function App() {
   const [filterMode, setFilterMode] = useState(null); // null | { type: 'stop', stopId } | { type: 'bus', busId }
   const [selectedStop, setSelectedStop] = useState(null);
   const [selectedBus, setSelectedBus] = useState(null);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [flyTo, setFlyTo] = useState(null);
   const [activeTripPlan, setActiveTripPlan] = useState(null);
   const [tripFrom, setTripFrom] = useState(null); // { type: 'stop', id, name } | { type: 'point', lat, lng }
@@ -33,6 +35,9 @@ export default function App() {
     }
 
     if (filterMode.type === 'stop') {
+      const stop = stopsMap[filterMode.stopId];
+      if (!stop) return { visibleStops: [], visibleBuses: [] };
+
       // Find all routes that pass through this stop
       const relevantRoutes = routes.filter(r => r.stops.includes(filterMode.stopId));
       const routeIds = new Set(relevantRoutes.map(r => r.id));
@@ -40,7 +45,12 @@ export default function App() {
       // Only show buses on those routes
       const filteredBuses = buses.filter(b => routeIds.has(b.route_id));
 
-      // Only show stops that belong to those routes
+      // If NO buses are currently on these routes, show ONLY the stop
+      if (filteredBuses.length === 0) {
+        return { visibleStops: [stop], visibleBuses: [] };
+      }
+
+      // If there ARE buses, show the full route context (all stops on those routes)
       const relevantStopIds = new Set();
       for (const route of relevantRoutes) {
         for (const sId of route.stops) {
@@ -69,6 +79,17 @@ export default function App() {
       return { visibleStops: filteredStops, visibleBuses: filteredBuses };
     }
 
+    if (filterMode.type === 'route') {
+      const route = routesMap[filterMode.routeId];
+      if (!route) return { visibleStops: stops, visibleBuses: buses };
+
+      const filteredBuses = buses.filter(b => b.route_id === filterMode.routeId);
+      const routeStopIds = new Set(route.stops);
+      const filteredStops = stops.filter(s => routeStopIds.has(s.id));
+
+      return { visibleStops: filteredStops, visibleBuses: filteredBuses };
+    }
+
     return { visibleStops: stops, visibleBuses: buses };
   }, [filterMode, buses]);
 
@@ -87,10 +108,28 @@ export default function App() {
     setFlyTo({ lat: liveBus.lat, lng: liveBus.lng, zoom: 16 });
   }, [buses]);
 
-  const handleClosePopup = useCallback(() => {
+  const handleSelectRoute = useCallback((routeId) => {
+    const route = routesMap[routeId];
+    if (!route) return;
+    setSelectedBus(null);
+    setSelectedStop(null);
+    setFilterMode({ type: 'route', routeId });
+    
+    // Fly to first stop of route if available
+    const firstStopId = route.stops[0];
+    const firstStop = stopsMap[firstStopId];
+    if (firstStop) {
+      setFlyTo({ lat: firstStop.lat, lng: firstStop.lng, zoom: 14 });
+    }
+  }, []);
+
+  const handleClearAll = useCallback(() => {
     setSelectedStop(null);
     setSelectedBus(null);
     setFilterMode(null);
+    setTripFrom(null);
+    setTripTo(null);
+    setActiveTripPlan(null);
   }, []);
 
   // Keep selected bus synced with simulation
@@ -104,7 +143,15 @@ export default function App() {
       <Navbar
         onSelectStop={handleSelectStop}
         onSelectBus={handleSelectBus}
+        onSelectRoute={handleSelectRoute}
+        onClearFilter={handleClearAll}
         buses={buses}
+        stopsCount={stops.length}
+      />
+
+      <FeedbackModal 
+        isOpen={isFeedbackOpen} 
+        onClose={useCallback(() => setIsFeedbackOpen(false), [])} 
       />
 
       {/* Main content area */}
@@ -115,10 +162,11 @@ export default function App() {
           onTripFound={plan => setActiveTripPlan(plan && !plan.error ? plan : null)}
           tripFrom={tripFrom}
           tripTo={tripTo}
-          onTripFromChange={setTripFrom}
-          onTripToChange={setTripTo}
+          onTripFromChange={(val) => { setTripFrom(val); if (!val) setActiveTripPlan(null); }}
+          onTripToChange={(val) => { setTripTo(val); if (!val) setActiveTripPlan(null); }}
           pickMode={pickMode}
           onPickMode={setPickMode}
+          onOpenFeedback={() => setIsFeedbackOpen(true)}
         />
 
         {/* Map */}
@@ -151,27 +199,45 @@ export default function App() {
           )}
 
           {/* Popup Modal */}
-          <PopupModal
+           <PopupModal
             type={filterMode?.type || null}
             stop={selectedStop}
             bus={liveBus}
             buses={buses}
-            onClose={handleClosePopup}
+            onClose={handleClearAll}
             onSelectBus={handleSelectBus}
           />
 
-          {/* Map overlay — live bus count badge */}
-          <div className="absolute bottom-5 left-4 flex flex-col gap-2 z-[999]">
-            <div className="flex items-center gap-2 bg-slate-900/90 backdrop-blur-sm border border-slate-700 rounded-xl px-3 py-2 shadow-lg">
-              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
-              <span className="text-white text-xs font-semibold">{activeBusCount} buses active</span>
-              <span className="text-slate-500 text-xs">/ {buses.length} total</span>
-            </div>
-            <div className="flex items-center gap-2 bg-slate-900/90 backdrop-blur-sm border border-slate-700 rounded-xl px-3 py-2 shadow-lg">
-              <div className="w-2 h-2 rounded-full bg-blue-400"></div>
-              <span className="text-white text-xs font-semibold">{stops.length} stops</span>
+          {/* Premium Bottom Left Stats */}
+          <div className="absolute bottom-6 left-6 flex items-center gap-3 z-[999] pointer-events-none">
+            <div className="flex flex-col gap-2">
+              <div className="group pointer-events-auto bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl flex items-center gap-4 transition-all hover:bg-slate-900/80 hover:border-white/20">
+                <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center text-green-400 border border-green-500/30 group-hover:scale-110 transition-transform">
+                  <span className="text-xl">🚌</span>
+                </div>
+                <div>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-white text-lg font-bold leading-none">{activeBusCount}</span>
+                    <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Live</span>
+                  </div>
+                  <p className="text-slate-500 text-[10px] font-medium leading-tight">Active Buses</p>
+                </div>
+              </div>
+
+              <div className="group pointer-events-auto bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl flex items-center gap-4 transition-all hover:bg-slate-900/80 hover:border-white/10">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 border border-blue-500/30 group-hover:scale-110 transition-transform">
+                  <span className="text-xl">📍</span>
+                </div>
+                <div>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-white text-lg font-bold leading-none">{stops.length}</span>
+                  </div>
+                  <p className="text-slate-500 text-[10px] font-medium leading-tight">Total Stops</p>
+                </div>
+              </div>
             </div>
           </div>
+
 
           {/* Help hint */}
           {!filterMode && (
