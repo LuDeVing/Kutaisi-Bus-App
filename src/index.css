@@ -110,31 +110,34 @@ body,
 
 /* Popup modal overlay */
 .popup-overlay {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  pointer-events: none;
+  /* Crucial: clicks pass through to map */
   z-index: 2000;
-  animation: fadeIn 0.2s ease-out;
+  display: flex;
+  justify-content: flex-end;
+  /* Sidebar on the right */
 }
 
 .popup-modal {
   background: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 20px;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
-  width: 420px;
-  max-width: 92vw;
-  max-height: 80vh;
+  border-left: 1px solid #334155;
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.4);
+  width: 380px;
+  max-width: 85vw;
+  height: 100%;
   overflow-y: auto;
   position: relative;
-  animation: popIn 0.25s ease-out;
+  /* Relative to the overlay's flex box */
+  animation: slideInRight 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+  /* Re-enable clicks for the sidebar itself */
 }
 
 .popup-close {
@@ -158,6 +161,21 @@ body,
 .popup-close:hover {
   background: #475569;
   color: white;
+}
+
+/* Passed stop styles */
+.stop-item-passed {
+  opacity: 0.6;
+}
+
+.stop-item-passed .popup-bus-name {
+  text-decoration: line-through;
+  color: #64748b;
+}
+
+.stop-dot-passed {
+  background: #334155 !important;
+  border-color: #475569 !important;
 }
 
 .popup-header {
@@ -364,6 +382,67 @@ body,
   color: white;
   font-weight: 600;
   font-size: 0.85rem;
+}
+
+/* Premium stat cards redesign */
+.stat-card-premium {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.2s ease;
+  background: #1e293b;
+}
+
+.stat-card-premium:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.stat-card-blue {
+  background: linear-gradient(145deg, #1e293b 0%, #1e3a8a 200%);
+}
+
+.stat-card-teal {
+  background: linear-gradient(145deg, #1e293b 0%, #0d9488 200%);
+}
+
+.stat-label-mini {
+  display: block;
+  color: #94a3b8;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.stat-value-large {
+  display: block;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.stat-unit {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.stat-icon-bg {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  font-size: 3rem;
+  opacity: 0.1;
+  transform: rotate(-15deg);
+  pointer-events: none;
 }
 
 @keyframes fadeIn {
