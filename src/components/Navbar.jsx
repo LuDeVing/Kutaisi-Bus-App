@@ -3,7 +3,7 @@ import { routes } from '../data/routes';
 
 export default function Navbar({ onSelectStop, onSelectBus, buses }) {
   return (
-    <header className="flex items-center justify-between px-5 py-3 bg-slate-900/95 backdrop-blur border-b border-slate-700/60 z-50 relative flex-shrink-0">
+    <header className="flex items-center justify-between px-5 py-3 bg-slate-900/95 backdrop-blur border-b border-slate-700/60 relative flex-shrink-0" style={{ zIndex: 2000 }}>
       {/* Logo */}
       <div className="flex items-center gap-3">
         <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/30">

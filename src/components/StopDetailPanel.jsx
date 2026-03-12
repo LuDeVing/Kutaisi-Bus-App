@@ -1,5 +1,4 @@
-import { routes } from '../data/routes';
-import { routesMap } from '../data/routes';
+import { routes, routesMap } from '../data/routes';
 
 function getArrivingBuses(stop, buses) {
   const arriving = [];
@@ -7,35 +6,36 @@ function getArrivingBuses(stop, buses) {
   for (const route of routes) {
     if (!route.stops.includes(stop.id)) continue;
 
-    // Find if there's a live bus on this route
     const liveBus = buses.find(b => b.route_id === route.id);
-    const stopPositionInRoute = route.stops.indexOf(stop.id);
+    if (!liveBus) continue;
 
-    let eta;
-    if (liveBus) {
-      const busStopIndex = liveBus.stopIndex ?? 0;
-      const diff = stopPositionInRoute - busStopIndex;
-      const stopsAway = diff >= 0 ? diff : route.stops.length + diff;
-      eta = Math.max(1, stopsAway * 3 - Math.floor(liveBus.progress * 3));
-    } else {
-      eta = (stopPositionInRoute + 1) * 3;
-    }
+    const eta = liveBus.etaToStops?.find(e => e.stopId === stop.id);
+    // Bus is dwelling at THIS specific stop
+    const isDwellingHere =
+      liveBus.status === 'dwelling' &&
+      route.stops[liveBus.stopIndex] === stop.id;
 
     arriving.push({
       busNumber: route.bus_number,
       routeId: route.id,
       color: route.color,
-      eta,
+      etaSeconds: isDwellingHere ? 0 : (eta?.etaSeconds ?? 999),
+      etaMinutes: isDwellingHere ? 0 : (eta?.etaMinutes ?? 0),
+      isDwellingHere,
+      dwellTicksLeft: liveBus.dwellTicks ?? 0,
+      bus: liveBus,
     });
   }
 
-  return arriving.sort((a, b) => a.eta - b.eta);
+  return arriving.sort((a, b) => a.etaSeconds - b.etaSeconds);
 }
 
-export default function StopDetailPanel({ stop, buses, onClose, onSelectBus }) {
+export default function StopDetailPanel({ stop, buses, onClose, onSelectBus, onSetTripFrom, onSetTripTo, tripFromId, tripToId }) {
   if (!stop) return null;
 
   const arriving = getArrivingBuses(stop, buses);
+  const isFrom = String(tripFromId) === String(stop.id);
+  const isTo = String(tripToId) === String(stop.id);
 
   return (
     <div className="panel-slide-in flex flex-col h-full">
@@ -59,8 +59,34 @@ export default function StopDetailPanel({ stop, buses, onClose, onSelectBus }) {
         </button>
       </div>
 
+      {/* Trip planner quick-set buttons */}
+      {(onSetTripFrom || onSetTripTo) && (
+        <div className="px-4 py-3 border-b border-slate-700/50 flex gap-2">
+          <button
+            onClick={() => onSetTripFrom?.(stop.id)}
+            className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+              isFrom
+                ? 'bg-blue-500 text-white'
+                : 'bg-slate-700 text-slate-300 hover:bg-blue-500/30 hover:text-blue-300'
+            }`}
+          >
+            {isFrom ? '✓ Start' : 'Set as Start'}
+          </button>
+          <button
+            onClick={() => onSetTripTo?.(stop.id)}
+            className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+              isTo
+                ? 'bg-green-500 text-white'
+                : 'bg-slate-700 text-slate-300 hover:bg-green-500/30 hover:text-green-300'
+            }`}
+          >
+            {isTo ? '✓ Destination' : 'Set as Destination'}
+          </button>
+        </div>
+      )}
+
       {/* Coordinates */}
-      <div className="px-5 py-3 border-b border-slate-700/50">
+      <div className="px-5 py-2 border-b border-slate-700/50">
         <div className="flex gap-4 text-xs text-slate-500">
           <span>Lat: {stop.lat.toFixed(4)}</span>
           <span>Lng: {stop.lng.toFixed(4)}</span>
@@ -68,43 +94,64 @@ export default function StopDetailPanel({ stop, buses, onClose, onSelectBus }) {
       </div>
 
       {/* Arriving buses */}
-      <div className="flex-1 overflow-y-auto p-5">
+      <div className="flex-1 overflow-y-auto p-4">
         <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
-          Arriving Buses
+          Live Arrivals
         </h3>
 
         {arriving.length === 0 ? (
           <p className="text-slate-500 text-sm">No buses serve this stop.</p>
         ) : (
           <div className="space-y-2">
-            {arriving.map(({ busNumber, routeId, color, eta }) => (
+            {arriving.map(({ busNumber, routeId, color, etaMinutes, etaSeconds, isDwellingHere, dwellTicksLeft, bus }) => (
               <button
                 key={routeId}
-                onClick={() => {
-                  const bus = buses.find(b => b.route_id === routeId);
-                  if (bus) onSelectBus(bus);
-                }}
-                className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-700/50 hover:bg-slate-700 transition-colors border border-slate-600/50 hover:border-slate-500 group"
+                onClick={() => onSelectBus(bus)}
+                className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-700/50 hover:bg-slate-700 transition-colors border border-slate-600/50 hover:border-slate-500"
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-white shadow-lg"
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-white shadow-lg relative flex-shrink-0"
                     style={{ background: color }}
                   >
                     {busNumber}
+                    {isDwellingHere && (
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border border-slate-800 animate-pulse"></div>
+                    )}
                   </div>
                   <div className="text-left">
                     <p className="text-white font-semibold text-sm">Bus {busNumber}</p>
-                    <p className="text-slate-400 text-xs">
-                      {routesMap[routeId]?.stops.length} stops on route
-                    </p>
+                    {isDwellingHere ? (
+                      <p className="text-green-400 text-xs font-medium">
+                        ● AT STOP — departing in ~{Math.round(dwellTicksLeft * 0.1)}s
+                      </p>
+                    ) : (
+                      <p className="text-slate-400 text-xs">
+                        {routesMap[routeId]?.stops.length} stops on route
+                      </p>
+                    )}
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className={`text-lg font-bold ${eta <= 3 ? 'text-green-400' : eta <= 7 ? 'text-amber-400' : 'text-slate-300'}`}>
-                    {eta} min
-                  </p>
-                  <p className="text-xs text-slate-500">arriving</p>
+
+                <div className="text-right flex-shrink-0">
+                  {isDwellingHere ? (
+                    <div>
+                      <p className="text-green-400 font-bold text-sm">HERE</p>
+                      <p className="text-xs text-slate-500">now</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className={`text-lg font-bold leading-tight ${
+                        etaMinutes <= 2 ? 'text-green-400' :
+                        etaMinutes <= 6 ? 'text-amber-400' :
+                        'text-slate-300'
+                      }`}>
+                        {etaMinutes === 0 ? '<1' : etaMinutes}
+                        <span className="text-xs font-normal text-slate-400 ml-0.5">min</span>
+                      </p>
+                      <p className="text-xs text-slate-500">arriving</p>
+                    </div>
+                  )}
                 </div>
               </button>
             ))}
@@ -116,7 +163,7 @@ export default function StopDetailPanel({ stop, buses, onClose, onSelectBus }) {
       <div className="p-4 border-t border-slate-700">
         <div className="flex items-center gap-2 text-xs text-slate-500">
           <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
-          <span>Live arrivals updated every 5s</span>
+          <span>Real-time — updates every 100ms</span>
         </div>
       </div>
     </div>

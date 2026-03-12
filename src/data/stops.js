@@ -1,124 +1,328 @@
 export const stops = [
-  {"id":1,"name":"Bagrati Cathedral","lat":42.2723,"lng":42.7067},
-  {"id":2,"name":"White Bridge","lat":42.2683,"lng":42.7055},
-  {"id":3,"name":"Central Square","lat":42.2670,"lng":42.7040},
-  {"id":4,"name":"Red Bridge","lat":42.2695,"lng":42.7101},
-  {"id":5,"name":"Kutaisi Railway Station","lat":42.2608,"lng":42.7225},
-  {"id":6,"name":"Bus Terminal","lat":42.2652,"lng":42.7300},
-  {"id":7,"name":"Imereti Hospital","lat":42.2632,"lng":42.7164},
-  {"id":8,"name":"Kutaisi University","lat":42.2554,"lng":42.7070},
-  {"id":9,"name":"Parliament Building","lat":42.2540,"lng":42.7115},
-  {"id":10,"name":"Tabukashvili Street","lat":42.2689,"lng":42.7241},
-  {"id":11,"name":"Nikea District Center","lat":42.2450,"lng":42.6990},
-  {"id":12,"name":"Nikea School","lat":42.2442,"lng":42.7005},
-  {"id":13,"name":"Nikea Market","lat":42.2435,"lng":42.7020},
-  {"id":14,"name":"Nikea Park","lat":42.2428,"lng":42.7035},
-  {"id":15,"name":"Nikea East","lat":42.2420,"lng":42.7050},
-  {"id":16,"name":"Avangardi Stadium","lat":42.2602,"lng":42.7042},
-  {"id":17,"name":"Avangardi Market","lat":42.2615,"lng":42.7056},
-  {"id":18,"name":"Avangardi School","lat":42.2627,"lng":42.7070},
-  {"id":19,"name":"Avangardi Park","lat":42.2638,"lng":42.7085},
-  {"id":20,"name":"Avangardi East","lat":42.2650,"lng":42.7100},
-  {"id":21,"name":"Gugunava Street","lat":42.2665,"lng":42.7115},
-  {"id":22,"name":"Gugunava Market","lat":42.2678,"lng":42.7130},
-  {"id":23,"name":"Gugunava Park","lat":42.2690,"lng":42.7145},
-  {"id":24,"name":"Gugunava School","lat":42.2703,"lng":42.7160},
-  {"id":25,"name":"Gugunava North","lat":42.2715,"lng":42.7175},
-  {"id":26,"name":"Youth Park","lat":42.2640,"lng":42.6995},
-  {"id":27,"name":"Youth Library","lat":42.2652,"lng":42.7010},
-  {"id":28,"name":"Youth Sports Center","lat":42.2664,"lng":42.7025},
-  {"id":29,"name":"Youth Mall","lat":42.2676,"lng":42.7040},
-  {"id":30,"name":"Youth North","lat":42.2688,"lng":42.7055},
-  {"id":31,"name":"Sapichkhia Center","lat":42.2700,"lng":42.7200},
-  {"id":32,"name":"Sapichkhia Market","lat":42.2712,"lng":42.7215},
-  {"id":33,"name":"Sapichkhia School","lat":42.2724,"lng":42.7230},
-  {"id":34,"name":"Sapichkhia Park","lat":42.2736,"lng":42.7245},
-  {"id":35,"name":"Sapichkhia North","lat":42.2748,"lng":42.7260},
-  {"id":36,"name":"Gelati Street","lat":42.2755,"lng":42.7060},
-  {"id":37,"name":"Gelati Market","lat":42.2765,"lng":42.7075},
-  {"id":38,"name":"Gelati School","lat":42.2775,"lng":42.7090},
-  {"id":39,"name":"Gelati Park","lat":42.2785,"lng":42.7105},
-  {"id":40,"name":"Gelati North","lat":42.2795,"lng":42.7120},
-  {"id":41,"name":"Chavchavadze Street","lat":42.2620,"lng":42.7090},
-  {"id":42,"name":"Chavchavadze Market","lat":42.2632,"lng":42.7105},
-  {"id":43,"name":"Chavchavadze School","lat":42.2644,"lng":42.7120},
-  {"id":44,"name":"Chavchavadze Park","lat":42.2656,"lng":42.7135},
-  {"id":45,"name":"Chavchavadze East","lat":42.2668,"lng":42.7150},
-  {"id":46,"name":"Zastava Center","lat":42.2500,"lng":42.7180},
-  {"id":47,"name":"Zastava Market","lat":42.2512,"lng":42.7195},
-  {"id":48,"name":"Zastava School","lat":42.2524,"lng":42.7210},
-  {"id":49,"name":"Zastava Park","lat":42.2536,"lng":42.7225},
-  {"id":50,"name":"Zastava North","lat":42.2548,"lng":42.7240},
-  {"id":51,"name":"Auto Market","lat":42.2570,"lng":42.7260},
-  {"id":52,"name":"Auto Service","lat":42.2582,"lng":42.7275},
-  {"id":53,"name":"Auto Parts Street","lat":42.2594,"lng":42.7290},
-  {"id":54,"name":"Auto District","lat":42.2606,"lng":42.7305},
-  {"id":55,"name":"Auto North","lat":42.2618,"lng":42.7320},
-  {"id":56,"name":"Airport Road","lat":42.2400,"lng":42.7200},
-  {"id":57,"name":"Airport Village","lat":42.2415,"lng":42.7215},
-  {"id":58,"name":"Airport Market","lat":42.2430,"lng":42.7230},
-  {"id":59,"name":"Airport School","lat":42.2445,"lng":42.7245},
-  {"id":60,"name":"Airport Terminal Road","lat":42.2460,"lng":42.7260},
-  {"id":61,"name":"River Park","lat":42.2705,"lng":42.7030},
-  {"id":62,"name":"River Market","lat":42.2717,"lng":42.7045},
-  {"id":63,"name":"River School","lat":42.2729,"lng":42.7060},
-  {"id":64,"name":"River Stadium","lat":42.2741,"lng":42.7075},
-  {"id":65,"name":"River North","lat":42.2753,"lng":42.7090},
-  {"id":66,"name":"Green Market","lat":42.2630,"lng":42.7035},
-  {"id":67,"name":"Green Street","lat":42.2642,"lng":42.7050},
-  {"id":68,"name":"Green School","lat":42.2654,"lng":42.7065},
-  {"id":69,"name":"Green Park","lat":42.2666,"lng":42.7080},
-  {"id":70,"name":"Green North","lat":42.2678,"lng":42.7095},
-  {"id":71,"name":"University West","lat":42.2540,"lng":42.7055},
-  {"id":72,"name":"University Library","lat":42.2552,"lng":42.7070},
-  {"id":73,"name":"University Dorms","lat":42.2564,"lng":42.7085},
-  {"id":74,"name":"University Stadium","lat":42.2576,"lng":42.7100},
-  {"id":75,"name":"University East","lat":42.2588,"lng":42.7115},
-  {"id":76,"name":"Old Town Center","lat":42.2680,"lng":42.7030},
-  {"id":77,"name":"Old Town Market","lat":42.2692,"lng":42.7045},
-  {"id":78,"name":"Old Town School","lat":42.2704,"lng":42.7060},
-  {"id":79,"name":"Old Town Park","lat":42.2716,"lng":42.7075},
-  {"id":80,"name":"Old Town North","lat":42.2728,"lng":42.7090},
-  {"id":81,"name":"West Gate","lat":42.2620,"lng":42.6950},
-  {"id":82,"name":"West Market","lat":42.2632,"lng":42.6965},
-  {"id":83,"name":"West School","lat":42.2644,"lng":42.6980},
-  {"id":84,"name":"West Park","lat":42.2656,"lng":42.6995},
-  {"id":85,"name":"West North","lat":42.2668,"lng":42.7010},
-  {"id":86,"name":"North Gate","lat":42.2760,"lng":42.7160},
-  {"id":87,"name":"North Market","lat":42.2772,"lng":42.7175},
-  {"id":88,"name":"North School","lat":42.2784,"lng":42.7190},
-  {"id":89,"name":"North Park","lat":42.2796,"lng":42.7205},
-  {"id":90,"name":"North Terminal","lat":42.2808,"lng":42.7220},
-  {"id":91,"name":"East Gate","lat":42.2620,"lng":42.7240},
-  {"id":92,"name":"East Market","lat":42.2632,"lng":42.7255},
-  {"id":93,"name":"East School","lat":42.2644,"lng":42.7270},
-  {"id":94,"name":"East Park","lat":42.2656,"lng":42.7285},
-  {"id":95,"name":"East Terminal","lat":42.2668,"lng":42.7300},
-  {"id":96,"name":"South Gate","lat":42.2480,"lng":42.7070},
-  {"id":97,"name":"South Market","lat":42.2492,"lng":42.7085},
-  {"id":98,"name":"South School","lat":42.2504,"lng":42.7100},
-  {"id":99,"name":"South Park","lat":42.2516,"lng":42.7115},
-  {"id":100,"name":"South Terminal","lat":42.2528,"lng":42.7130},
-  {"id":101,"name":"Industrial Zone 1","lat":42.2580,"lng":42.7330},
-  {"id":102,"name":"Industrial Zone 2","lat":42.2592,"lng":42.7345},
-  {"id":103,"name":"Industrial Zone 3","lat":42.2604,"lng":42.7360},
-  {"id":104,"name":"Industrial Zone 4","lat":42.2616,"lng":42.7375},
-  {"id":105,"name":"Industrial Zone 5","lat":42.2628,"lng":42.7390},
-  {"id":106,"name":"Mall Kutaisi","lat":42.2585,"lng":42.7120},
-  {"id":107,"name":"City Mall Street","lat":42.2597,"lng":42.7135},
-  {"id":108,"name":"Mall Park","lat":42.2609,"lng":42.7150},
-  {"id":109,"name":"Mall Cinema","lat":42.2621,"lng":42.7165},
-  {"id":110,"name":"Mall East","lat":42.2633,"lng":42.7180},
-  {"id":111,"name":"Tech Park","lat":42.2560,"lng":42.7190},
-  {"id":112,"name":"Innovation Center","lat":42.2572,"lng":42.7205},
-  {"id":113,"name":"Startup Hub","lat":42.2584,"lng":42.7220},
-  {"id":114,"name":"Tech Dorms","lat":42.2596,"lng":42.7235},
-  {"id":115,"name":"Tech East","lat":42.2608,"lng":42.7250},
-  {"id":116,"name":"Garden District","lat":42.2710,"lng":42.6980},
-  {"id":117,"name":"Garden Market","lat":42.2722,"lng":42.6995},
-  {"id":118,"name":"Garden School","lat":42.2734,"lng":42.7010},
-  {"id":119,"name":"Garden Park","lat":42.2746,"lng":42.7025},
-  {"id":120,"name":"Garden North","lat":42.2758,"lng":42.7040}
+  {
+    "id": 1,
+    "name": "Flag",
+    "lat": 42.2378495,
+    "lng": 42.6922685
+  },
+  {
+    "id": 2,
+    "name": "Youth Park",
+    "lat": 42.2515656,
+    "lng": 42.6830123
+  },
+  {
+    "id": 3,
+    "name": "Youth Park",
+    "lat": 42.2521687,
+    "lng": 42.6823177
+  },
+  {
+    "id": 4,
+    "name": "Pirosmani",
+    "lat": 42.2543538,
+    "lng": 42.6773689
+  },
+  {
+    "id": 5,
+    "name": "Pirosmani",
+    "lat": 42.2545579,
+    "lng": 42.6763278
+  },
+  {
+    "id": 6,
+    "name": "Kutaisi - Batumi",
+    "lat": 42.2564489,
+    "lng": 42.6704458
+  },
+  {
+    "id": 7,
+    "name": "Kutaisi 2",
+    "lat": 42.2566853,
+    "lng": 42.6721041
+  },
+  {
+    "id": 8,
+    "name": "Buses to the Airport",
+    "lat": 42.2573287,
+    "lng": 42.6706293
+  },
+  {
+    "id": 9,
+    "name": "Chavchavadze Square",
+    "lat": 42.257919,
+    "lng": 42.6678565
+  },
+  {
+    "id": 10,
+    "name": "Chavchavadze Square",
+    "lat": 42.2586387,
+    "lng": 42.6687667
+  },
+  {
+    "id": 11,
+    "name": "School #12",
+    "lat": 42.2590536,
+    "lng": 42.7090258
+  },
+  {
+    "id": 12,
+    "name": "Shartava",
+    "lat": 42.2604441,
+    "lng": 42.671281
+  },
+  {
+    "id": 13,
+    "name": "Shartava",
+    "lat": 42.2606407,
+    "lng": 42.6720746
+  },
+  {
+    "id": 14,
+    "name": "Asatiani-Tabidze",
+    "lat": 42.2613143,
+    "lng": 42.6987136
+  },
+  {
+    "id": 15,
+    "name": "Train Station",
+    "lat": 42.2614042,
+    "lng": 42.7118724
+  },
+  {
+    "id": 16,
+    "name": "21st School",
+    "lat": 42.2615152,
+    "lng": 42.6904007
+  },
+  {
+    "id": 17,
+    "name": "Aghmashenebeli Bridge",
+    "lat": 42.2615478,
+    "lng": 42.7031826
+  },
+  {
+    "id": 18,
+    "name": "Garden of Glory",
+    "lat": 42.2615494,
+    "lng": 42.6933029
+  },
+  {
+    "id": 19,
+    "name": "Autonomy",
+    "lat": 42.2616129,
+    "lng": 42.6827042
+  },
+  {
+    "id": 20,
+    "name": "Balakhvani",
+    "lat": 42.2616839,
+    "lng": 42.7076454
+  },
+  {
+    "id": 21,
+    "name": "Nutsubidze",
+    "lat": 42.2616854,
+    "lng": 42.6788954
+  },
+  {
+    "id": 22,
+    "name": "Blue Tabla",
+    "lat": 42.2616961,
+    "lng": 42.6756845
+  },
+  {
+    "id": 23,
+    "name": "Parliament",
+    "lat": 42.2623788,
+    "lng": 42.6608722
+  },
+  {
+    "id": 24,
+    "name": "Garden of Glory",
+    "lat": 42.2624471,
+    "lng": 42.6931359
+  },
+  {
+    "id": 25,
+    "name": "Blue Tabla",
+    "lat": 42.2624986,
+    "lng": 42.6750814
+  },
+  {
+    "id": 26,
+    "name": "Public Service Hall",
+    "lat": 42.2632024,
+    "lng": 42.6663483
+  },
+  {
+    "id": 27,
+    "name": "Suliko",
+    "lat": 42.263433,
+    "lng": 42.6716566
+  },
+  {
+    "id": 28,
+    "name": "Chechelashvili",
+    "lat": 42.2638181,
+    "lng": 42.6988033
+  },
+  {
+    "id": 29,
+    "name": "Minerals Institute",
+    "lat": 42.2638212,
+    "lng": 42.6732594
+  },
+  {
+    "id": 30,
+    "name": "University",
+    "lat": 42.2645013,
+    "lng": 42.7088814
+  },
+  {
+    "id": 31,
+    "name": "Bukhaidze",
+    "lat": 42.2649892,
+    "lng": 42.6740453
+  },
+  {
+    "id": 32,
+    "name": "Tortladze",
+    "lat": 42.2664184,
+    "lng": 42.689093
+  },
+  {
+    "id": 33,
+    "name": "Music School",
+    "lat": 42.2665935,
+    "lng": 42.7044078
+  },
+  {
+    "id": 34,
+    "name": "Victory Square",
+    "lat": 42.2666951,
+    "lng": 42.6830868
+  },
+  {
+    "id": 35,
+    "name": "Parnavaz Mepe",
+    "lat": 42.2667066,
+    "lng": 42.688071
+  },
+  {
+    "id": 36,
+    "name": "Victory Square",
+    "lat": 42.2668292,
+    "lng": 42.6853193
+  },
+  {
+    "id": 37,
+    "name": "Aslanikashvili Square",
+    "lat": 42.2668927,
+    "lng": 42.6932158
+  },
+  {
+    "id": 38,
+    "name": "Auli Galaevi-Nizharadze",
+    "lat": 42.267087,
+    "lng": 42.6982343
+  },
+  {
+    "id": 39,
+    "name": "Revenue Service",
+    "lat": 42.267323,
+    "lng": 42.6837104
+  },
+  {
+    "id": 40,
+    "name": "Grishashvili-Dumbadze",
+    "lat": 42.2676668,
+    "lng": 42.6955534
+  },
+  {
+    "id": 41,
+    "name": "Oghaskura",
+    "lat": 42.2680523,
+    "lng": 42.6742294
+  },
+  {
+    "id": 42,
+    "name": "Korkia Street",
+    "lat": 42.2681901,
+    "lng": 42.7063847
+  },
+  {
+    "id": 43,
+    "name": "Circular Bus",
+    "lat": 42.2682042,
+    "lng": 42.7160687
+  },
+  {
+    "id": 44,
+    "name": "Tskhinvali",
+    "lat": 42.2683456,
+    "lng": 42.6803627
+  },
+  {
+    "id": 45,
+    "name": "Oncology Center",
+    "lat": 42.2693019,
+    "lng": 42.6676642
+  },
+  {
+    "id": 46,
+    "name": "Chonkadze",
+    "lat": 42.2695201,
+    "lng": 42.6764594
+  },
+  {
+    "id": 47,
+    "name": "Ice Palace",
+    "lat": 42.2700327,
+    "lng": 42.6747354
+  },
+  {
+    "id": 48,
+    "name": "Karvasla",
+    "lat": 42.2701527,
+    "lng": 42.7047245
+  },
+  {
+    "id": 49,
+    "name": "Tourist Information",
+    "lat": 42.2705998,
+    "lng": 42.700077
+  },
+  {
+    "id": 50,
+    "name": "Bus 30 to Tskaltubo",
+    "lat": 42.2711582,
+    "lng": 42.6986783
+  },
+  {
+    "id": 51,
+    "name": "Aghmashenebeli Square",
+    "lat": 42.2713461,
+    "lng": 42.7049632
+  },
+  {
+    "id": 52,
+    "name": "Paliashvli",
+    "lat": 42.2715892,
+    "lng": 42.700838
+  },
+  {
+    "id": 53,
+    "name": "Banoja",
+    "lat": 42.2795659,
+    "lng": 42.665277
+  },
+  {
+    "id": 54,
+    "name": "18th street",
+    "lat": 42.2833549,
+    "lng": 42.6641672
+  }
 ];
 
 export const stopsMap = Object.fromEntries(stops.map(s => [s.id, s]));

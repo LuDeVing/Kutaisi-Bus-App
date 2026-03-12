@@ -12,7 +12,17 @@ export default function App() {
   const [selectedStop, setSelectedStop] = useState(null);
   const [selectedBus, setSelectedBus] = useState(null);
   const [flyTo, setFlyTo] = useState(null);
+  const [activeTripPlan, setActiveTripPlan] = useState(null);
+  const [tripFrom, setTripFrom] = useState(null); // { type: 'stop', id, name } | { type: 'point', lat, lng }
+  const [tripTo, setTripTo] = useState(null);
+  const [pickMode, setPickMode] = useState(null); // 'from' | 'to' | null
   const mapRef = useRef(null);
+
+  const handleMapClick = useCallback((lat, lng) => {
+    if (pickMode === 'from') setTripFrom({ type: 'point', lat, lng });
+    else if (pickMode === 'to') setTripTo({ type: 'point', lat, lng });
+    setPickMode(null);
+  }, [pickMode]);
 
   const handleSelectStop = useCallback((stop) => {
     setSelectedStop(stop);
@@ -50,7 +60,16 @@ export default function App() {
       {/* Main content area */}
       <div className="flex flex-1 overflow-hidden relative">
         {/* Left sidebar - Trip Planner */}
-        <TripPlanner onSelectStop={handleSelectStop} />
+        <TripPlanner
+          onSelectStop={handleSelectStop}
+          onTripFound={plan => setActiveTripPlan(plan && !plan.error ? plan : null)}
+          tripFrom={tripFrom}
+          tripTo={tripTo}
+          onTripFromChange={setTripFrom}
+          onTripToChange={setTripTo}
+          pickMode={pickMode}
+          onPickMode={setPickMode}
+        />
 
         {/* Map */}
         <div className="flex-1 relative">
@@ -62,7 +81,21 @@ export default function App() {
             onSelectStop={handleSelectStop}
             flyTo={flyTo}
             onMapReady={(map) => { mapRef.current = map; }}
+            tripPlan={activeTripPlan}
+            pickMode={pickMode}
+            onMapClick={handleMapClick}
+            tripFrom={tripFrom}
+            tripTo={tripTo}
           />
+
+          {/* Pick mode overlay */}
+          {pickMode && (
+            <div className="absolute inset-0 z-[998] pointer-events-none" style={{ outline: `3px solid ${pickMode === 'from' ? '#60a5fa' : '#4ade80'}`, outlineOffset: '-3px' }}>
+              <div className={`absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl text-sm font-semibold text-white shadow-xl ${pickMode === 'from' ? 'bg-blue-600' : 'bg-green-600'}`}>
+                📍 Click anywhere to set {pickMode === 'from' ? 'start' : 'destination'}
+              </div>
+            </div>
+          )}
 
           {/* Right detail panel */}
           {showPanel && (
@@ -76,6 +109,10 @@ export default function App() {
                   buses={buses}
                   onClose={handleClosePanel}
                   onSelectBus={handleSelectBus}
+                  onSetTripFrom={id => { setTripFrom({ type: 'stop', id: String(id), name: selectedStop.name }); setActiveTripPlan(null); }}
+                  onSetTripTo={id => { setTripTo({ type: 'stop', id: String(id), name: selectedStop.name }); setActiveTripPlan(null); }}
+                  tripFromId={tripFrom?.type === 'stop' ? tripFrom.id : ''}
+                  tripToId={tripTo?.type === 'stop' ? tripTo.id : ''}
                 />
               )}
               {liveBus && (
@@ -95,7 +132,7 @@ export default function App() {
             </div>
             <div className="flex items-center gap-2 bg-slate-900/90 backdrop-blur-sm border border-slate-700 rounded-xl px-3 py-2 shadow-lg">
               <div className="w-2 h-2 rounded-full bg-blue-400"></div>
-              <span className="text-white text-xs font-semibold">120 stops</span>
+              <span className="text-white text-xs font-semibold">54 stops</span>
             </div>
           </div>
 
