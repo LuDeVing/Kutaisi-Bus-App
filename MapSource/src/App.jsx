@@ -5,12 +5,12 @@ import MapView from './components/MapView';
 import PopupModal from './components/PopupModal';
 import FeedbackModal from './components/FeedbackModal';
 import { useBusSimulation } from './hooks/useBusSimulation';
-import { initialBuses } from './data/buses';
+
 import { stops, stopsMap } from './data/stops';
 import { routes, routesMap } from './data/routes';
 
-export default function App() {
-  const buses = useBusSimulation(initialBuses);
+export default function App({ fleet, onOpenTimetable }) {
+  const buses = useBusSimulation(fleet);
   const [filterMode, setFilterMode] = useState(null); // null | { type: 'stop', stopId } | { type: 'bus', busId }
   const [selectedStop, setSelectedStop] = useState(null);
   const [selectedBus, setSelectedBus] = useState(null);
@@ -133,7 +133,7 @@ export default function App() {
   }, []);
 
   // Keep selected bus synced with simulation
-  const liveBus = selectedBus ? buses.find(b => b.id === selectedBus.id) || selectedBus : null;
+  const liveBus = selectedBus ? buses.find(b => b.id === selectedBus.id) || null : null;
 
   const activeBusCount = buses.filter(b => b.isActive !== false).length;
 
@@ -147,6 +147,7 @@ export default function App() {
         onClearFilter={handleClearAll}
         buses={buses}
         stopsCount={stops.length}
+        onOpenTimetable={onOpenTimetable}
       />
 
       <FeedbackModal 

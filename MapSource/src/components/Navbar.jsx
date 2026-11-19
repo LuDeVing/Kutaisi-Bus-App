@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import SearchBar from './SearchBar';
 import { routes } from '../data/routes';
 
-export default function Navbar({ onSelectStop, onSelectBus, onSelectRoute, onClearFilter, buses, stopsCount }) {
+export default function Navbar({ onSelectStop, onSelectBus, onSelectRoute, onClearFilter, buses, stopsCount, onOpenTimetable }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -69,6 +69,13 @@ export default function Navbar({ onSelectStop, onSelectBus, onSelectRoute, onCle
           buses={buses}
         />
       </div>
+
+      {onOpenTimetable && (
+        <button type="button" onClick={onOpenTimetable}
+          className="mr-3 rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-700">
+          Timetable
+        </button>
+      )}
 
       {/* Collapsible Routes List */}
       <div className="relative" ref={menuRef}>

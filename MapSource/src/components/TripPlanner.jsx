@@ -4,7 +4,7 @@ import { planTrip, planTripFromCoords } from '../utils/tripPlanner';
 import { routesMap } from '../data/routes';
 import { stopsMap } from '../data/stops';
 
-const sortedStops = [...stops].sort((a, b) => a.name.localeCompare(b.name));
+const getSortedStops = () => [...stops].sort((a, b) => a.name.localeCompare(b.name));
 
 function SearchableStopSelector({ label, value, onChange, placeholder, colorClass, search, onSearchChange, pickMode, onPickMode, activePickMode }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -21,7 +21,7 @@ function SearchableStopSelector({ label, value, onChange, placeholder, colorClas
   }, []);
 
   const filteredStops = useMemo(() => 
-    sortedStops.filter(s => s.name.toLowerCase().includes(search.toLowerCase())),
+    getSortedStops().filter(s => s.name.toLowerCase().includes(search.toLowerCase())),
     [search]
   );
 
@@ -167,12 +167,12 @@ export default function TripPlanner({ onSelectStop, onTripFound, tripFrom, tripT
   const [toSearch, setToSearch] = useState('');
 
   const filteredFromStops = useMemo(() => 
-    sortedStops.filter(s => s.name.toLowerCase().includes(fromSearch.toLowerCase())),
+    getSortedStops().filter(s => s.name.toLowerCase().includes(fromSearch.toLowerCase())),
     [fromSearch]
   );
 
   const filteredToStops = useMemo(() => 
-    sortedStops.filter(s => s.name.toLowerCase().includes(toSearch.toLowerCase())),
+    getSortedStops().filter(s => s.name.toLowerCase().includes(toSearch.toLowerCase())),
     [toSearch]
   );
 // ... existing functions handleFind, handleStopClick

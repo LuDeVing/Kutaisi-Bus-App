@@ -1,4 +1,9 @@
-node_modules/
-dist/
-.env
-.env.local
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+.vs/
+*.user
+*.mdf
+*.ldf
+*.zip

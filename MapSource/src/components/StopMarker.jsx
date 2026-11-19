@@ -32,6 +32,7 @@ export default function StopMarker({ stop, isSelected, onSelect }) {
   return (
     <Marker
       position={[stop.lat, stop.lng]}
+      title={stop.name}
       icon={icon}
       eventHandlers={{
         click: () => onSelect(stop),

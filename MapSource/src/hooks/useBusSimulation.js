@@ -55,6 +55,11 @@ function computeETAs(pathIndex, progress, direction, route) {
   }).sort((a, b) => a.etaSeconds - b.etaSeconds);
 }
 
+function nextStopIndex(stopIndex, direction, stopCount) {
+  const next = stopIndex + direction;
+  return next >= 0 && next < stopCount ? next : Math.max(0, stopIndex - direction);
+}
+
 function initBus(bus) {
   const route = routesMap[bus.route_id];
   const stopIds = route?.stops ?? [];
@@ -79,12 +84,23 @@ function initBus(bus) {
     etaToStops: [],
     destination: terminus ? terminus.name : '',
     current_stop: stopsMap[stopIds[startStopIdx]]?.name ?? '',
-    next_stop: stopsMap[stopIds[startStopIdx + 1] ?? stopIds[0]]?.name ?? '',
+    next_stop: stopsMap[stopIds[nextStopIndex(startStopIdx, 1, stopIds.length)]]?.name ?? '',
   };
 }
 
 export function useBusSimulation(initialBuses) {
-  const [buses, setBuses] = useState(() => initialBuses.map(b => initBus(b)));
+  const [buses, setBuses] = useState(() => initialBuses.map(initBus));
+
+  useEffect(() => {
+    setBuses(previous => {
+      const byId = new Map(previous.map(bus => [bus.id, bus]));
+      return initialBuses.map(bus => {
+        const existing = byId.get(bus.id);
+        return existing?.route_id === bus.route_id && existing.startPathIndex === bus.startPathIndex
+          ? existing : initBus(bus);
+      });
+    });
+  }, [initialBuses]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -97,7 +113,7 @@ export function useBusSimulation(initialBuses) {
           if (!route) return bus;
 
           const { path, stops: stopIds, stopWaypoints } = route;
-          const maxSegmentIndex = path.length - 2;
+          const maxPathIndex = path.length - 1;
 
           // --- DWELLING ---
           if (bus.status === 'dwelling') {
@@ -120,9 +136,9 @@ export function useBusSimulation(initialBuses) {
             newPathIndex = bus.pathIndex + newDirection;
 
             // Hit end → reverse direction
-            if (newPathIndex > maxSegmentIndex) {
+            if (newPathIndex > maxPathIndex) {
               newDirection = -1;
-              newPathIndex = maxSegmentIndex - 1;
+              newPathIndex = maxPathIndex - 1;
             }
             // Hit start → reverse direction
             if (newPathIndex < 0) {
@@ -146,9 +162,7 @@ export function useBusSimulation(initialBuses) {
           const lng = lerp(fromPt[1], toPt[1], newProgress);
 
           const currentStopId = stopIds[newStopIndex];
-          const nextStopIdx = newDirection === 1
-            ? (newStopIndex + 1) % stopIds.length
-            : Math.max(0, newStopIndex - 1);
+          const nextStopIdx = nextStopIndex(newStopIndex, newDirection, stopIds.length);
           const nextStopId = stopIds[nextStopIdx];
 
           // Update destination label to reflect current direction
